@@ -63,7 +63,7 @@ func main() {
 			wg.Wait()
 			fmt.Println("все хорошо")
 			return
-		case <-time.After(time.Millisecond):
+		case <-time.After(time.Microsecond):
 			fmt.Println("отправляем:", i)
 			ch <- i
 			i++

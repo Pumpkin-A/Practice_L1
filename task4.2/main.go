@@ -35,32 +35,26 @@ func main() {
 		go func(ctx context.Context, i int) {
 			defer wg.Done()
 			for {
-				select {
-				case <-ctx.Done():
-					fmt.Println("nnn")
+				value, ok := <-ch
+				if !ok {
 					return
-				default:
-					fmt.Println(i, <-ch)
 				}
+				fmt.Println(i, ":", value)
 			}
 		}(ctx, i)
 	}
 
-	go func() {
-		<-ctx.Done()
-		close(ch)
-		wg.Wait()
-		return
-	}()
-
 	var i int
 	for {
-
+		if ctx.Err() == context.Canceled {
+			close(ch)
+			wg.Wait()
+			fmt.Println("все хорошо!!!!!!!!!!!!!!!!!!!!!!!")
+			return
+		}
 		fmt.Println("отправляем:", i)
 		ch <- i
 		i++
 	}
-
-	fmt.Println("все хорошо")
 
 }
