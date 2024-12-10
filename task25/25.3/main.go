@@ -3,9 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
-
-	"golang.org/x/sync/errgroup"
 )
 
 func main() {
@@ -13,20 +12,23 @@ func main() {
 
 	sleepingTime := 5 * time.Second
 	ctx, cancel := context.WithTimeout(context.Background(), sleepingTime)
-	g, gCtx := errgroup.WithContext(ctx)
 	defer cancel()
 
-	g.Go(func() error {
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
 		for {
-			if gCtx.Err() == context.DeadlineExceeded {
+			if ctx.Err() == context.DeadlineExceeded {
 				ch <- true
 				close(ch)
-				return nil
+				return
 			}
 		}
-	})
+	}()
 
 	fmt.Println("sleep for 5 seconds")
 	<-ch
+	wg.Wait()
 	fmt.Println("sleep for 5 seconds is over")
 }
